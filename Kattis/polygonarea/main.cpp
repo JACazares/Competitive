@@ -105,140 +105,35 @@ ld dist(Point _x) { return sqrt(dist2(_x)); }
 
 Point ZERO = Point(0, 0);
 
-void solve()
+const int MAXN = (int)1e3 + 5;
+Point p[MAXN];
+
+void solve(int N)
 {
-	Point a, b, c, d;
-	cin >> a >> b >> c >> d;
-	Line l1 = Line(a, b - a), l2 = Line(c, d - c);
-
-	if(l1.v == ZERO && l2.v == ZERO)
-	{
-		if(a == c)
-			cout << a << "\n";
-		else
-			cout << "none\n";
-	}
-	else if(l1.v == ZERO)
-	{
-		if(cross(a - c, l2.v) == 0)
-		{
-			if(a.x != c.x)
-			{
-				if(c.x <= a.x && a.x <= d.x)
-					cout << a << "\n";
-				else
-					cout << "none\n";
-			}
-			else
-			{
-				if(c.y <= a.y && a.y <= d.y)
-					cout << a << "\n";
-				else
-					cout << "none\n";
-			}
-		}
-		else
-			cout << "none\n";
-	}
-	else if(l2.v == ZERO)
-	{
-		if(cross(c - a, l1.v) == 0)
-		{
-			if(a.x != c.x)
-			{
-				if(a.x <= c.x && c.x <= b.x)
-					cout << c << "\n";
-				else
-					cout << "none\n";
-			}
-			else
-			{
-				if(a.y <= c.y && c.y <= b.y)
-					cout << c << "\n";
-				else
-					cout << "none\n";
-			}
-		}
-		else
-			cout << "none\n";
-	}
+	for(int i = 0; i < N; i++)
+		cin >> p[i];
+	
+	ld area = 0;
+	for(int i = 0; i < N; i++)
+		area += cross(p[i], p[(i+1)%N]);
+	
+	cout.setf(ios::fixed);
+	cout.precision(1);
+	if(area > 0)
+		cout << "CCW " << area/2 << "\n";
 	else
-	{
-		if(cross(l1.v, l2.v) == 0)
-		{
-			cerr << c-a << " " << l1.v << " " << cross(c-a, l1.v) << "\n";
-			if(cross(c - a, l1.v) == 0)
-			{
-				if(a.x != c.x)
-				{
-					if(a.x > b.x)
-						swap(a, b);
-					if(c.x > d.x)
-						swap(c, d);
-					if(a.x > c.x)
-					{
-						swap(a, c);
-						swap(b, d);
-					}
-
-					if(b.x == c.x)
-						cout << b << "\n";
-					else if(a.x <= c.x && c.x <= b.x)
-					{
-						if(b.x <= d.x)
-							cout << c << " " << b << "\n";
-						else
-							cout << c << " " << d << "\n";
-					}
-					else
-						cout << "none\n";
-				}
-				else
-				{
-					if(a.y > b.y)
-						swap(a, b);
-					if(c.y > d.y)
-						swap(c, d);
-					if(a.y > c.y)
-					{
-						swap(a, c);
-						swap(b, d);
-					}
-
-					if(b.y == c.y)
-						cout << b << "\n";
-					else if(a.y <= c.y && c.y <= b.y)
-					{
-						if(b.y <= d.y)
-							cout << c << " " << b << "\n";
-						else
-							cout << c << " " << d << "\n";
-					}
-					else
-						cout << "none\n";	
-				}
-			}
-			else
-				cout << "none\n";
-		}
-		else
-		{
-			ld t = cross(l2.a - l1.a, l2.v) / cross(l1.v, l2.v);
-			ld s = cross(l1.a - l2.a, l1.v) / cross(l2.v, l1.v);
-			if(0 <= t && t <= 1 && 0 <= s && s <= 1)
-				cout << (l1.a + l1.v*t) << "\n";
-			else
-				cout << "none\n";
-		}
-	}
+		cout << "CW " << -area/2 << "\n";
 }
 
 int main()
 {
 	optimizeIO();
-	int T = 1;
-	cin >> T;
-	while(T--)
-		solve();
+	int N;
+	cin >> N;
+	while(N != 0)
+	{
+		solve(N);
+		cin >> N;
+	}
 	return 0;
 }

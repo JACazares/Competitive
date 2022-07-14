@@ -16,6 +16,8 @@ using vpl = vector<pll>;
 #define pb push_back
 #define fst first
 #define snd second
+
+const ld EPS = 1e-6;
  
 int pct(int x) { return __builtin_popcount((unsigned int)x); }
  
@@ -73,7 +75,7 @@ struct Point
 	friend std::ostream& operator<<(std::ostream& out, const Point& _x);
 
 	bool operator ==(const Point& _x) const {
-		return (x == _x.x && y == _x.y);
+		return (abs(x - _x.x) < EPS && abs(y - _x.y) < EPS);
 	}
 
 	Point operator +(const Point& _x) const {
@@ -105,140 +107,58 @@ ld dist(Point _x) { return sqrt(dist2(_x)); }
 
 Point ZERO = Point(0, 0);
 
+int sgn(ld x){
+	if(abs(x) < EPS)
+		return 0;
+	if(x > 0)
+		return 1;
+	else
+		return -1;
+}
+
+bool intersect(Point a, Point b, Line l)
+{
+	if(sgn(cross(a-l.a, l.v)) != sgn(cross(b-l.a, l.v)))
+		return true;
+	return false;
+}
+
+const int MAXN = (int)1e3 + 5;
+int N, M;
+Point p[MAXN], infty = Point(11000, 1);
+
 void solve()
 {
-	Point a, b, c, d;
-	cin >> a >> b >> c >> d;
-	Line l1 = Line(a, b - a), l2 = Line(c, d - c);
-
-	if(l1.v == ZERO && l2.v == ZERO)
+	for(int i = 0; i < N; i++)
+		cin >> p[i];
+	cin >> M;
+	for(int i = 0; i < M; i++)
 	{
-		if(a == c)
-			cout << a << "\n";
-		else
-			cout << "none\n";
-	}
-	else if(l1.v == ZERO)
-	{
-		if(cross(a - c, l2.v) == 0)
+		Point a;
+		cin >> a;
+		int segments = 0, on = 0;
+		for(int j = 0; j < N; j++)
 		{
-			if(a.x != c.x)
-			{
-				if(c.x <= a.x && a.x <= d.x)
-					cout << a << "\n";
-				else
-					cout << "none\n";
-			}
-			else
-			{
-				if(c.y <= a.y && a.y <= d.y)
-					cout << a << "\n";
-				else
-					cout << "none\n";
-			}
+			if(intersect(p[i], p[(i+1)%N], Line(a, infty)))
+				segments++;
+			if(cross)
 		}
+		
+		if(on)
+			cout << "on\n";
 		else
-			cout << "none\n";
-	}
-	else if(l2.v == ZERO)
-	{
-		if(cross(c - a, l1.v) == 0)
-		{
-			if(a.x != c.x)
-			{
-				if(a.x <= c.x && c.x <= b.x)
-					cout << c << "\n";
-				else
-					cout << "none\n";
-			}
-			else
-			{
-				if(a.y <= c.y && c.y <= b.y)
-					cout << c << "\n";
-				else
-					cout << "none\n";
-			}
-		}
-		else
-			cout << "none\n";
-	}
-	else
-	{
-		if(cross(l1.v, l2.v) == 0)
-		{
-			cerr << c-a << " " << l1.v << " " << cross(c-a, l1.v) << "\n";
-			if(cross(c - a, l1.v) == 0)
-			{
-				if(a.x != c.x)
-				{
-					if(a.x > b.x)
-						swap(a, b);
-					if(c.x > d.x)
-						swap(c, d);
-					if(a.x > c.x)
-					{
-						swap(a, c);
-						swap(b, d);
-					}
-
-					if(b.x == c.x)
-						cout << b << "\n";
-					else if(a.x <= c.x && c.x <= b.x)
-					{
-						if(b.x <= d.x)
-							cout << c << " " << b << "\n";
-						else
-							cout << c << " " << d << "\n";
-					}
-					else
-						cout << "none\n";
-				}
-				else
-				{
-					if(a.y > b.y)
-						swap(a, b);
-					if(c.y > d.y)
-						swap(c, d);
-					if(a.y > c.y)
-					{
-						swap(a, c);
-						swap(b, d);
-					}
-
-					if(b.y == c.y)
-						cout << b << "\n";
-					else if(a.y <= c.y && c.y <= b.y)
-					{
-						if(b.y <= d.y)
-							cout << c << " " << b << "\n";
-						else
-							cout << c << " " << d << "\n";
-					}
-					else
-						cout << "none\n";	
-				}
-			}
-			else
-				cout << "none\n";
-		}
-		else
-		{
-			ld t = cross(l2.a - l1.a, l2.v) / cross(l1.v, l2.v);
-			ld s = cross(l1.a - l2.a, l1.v) / cross(l2.v, l1.v);
-			if(0 <= t && t <= 1 && 0 <= s && s <= 1)
-				cout << (l1.a + l1.v*t) << "\n";
-			else
-				cout << "none\n";
-		}
+			cout << (segments%2 ? "in" : "out") << "\n";
 	}
 }
 
 int main()
 {
 	optimizeIO();
-	int T = 1;
-	cin >> T;
-	while(T--)
+	while(cin >> N)
+	{
+		if(N == 0)
+			break;
 		solve();
+	}
 	return 0;
 }
