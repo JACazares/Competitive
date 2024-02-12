@@ -1,0 +1,56 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+using ll = long long;
+
+const int MAXN = (int)1e5 + 5;
+const int MID = 5e5, MAX = 1e6;
+ll N, a[MAXN], pre[MAXN], suf[MAXN];
+
+ll sum(int x, int y)
+{
+    if(x > y)
+        return 0;
+    return pre[y] - pre[x - 1];
+}
+
+int main()
+{
+    cin >> N;
+    for(int i = 1; i <= N; i++)
+        cin >> a[i];
+    sort(a+1, a+N+1);
+
+    ll aux = a[1];
+    int l = 1, r = N + 1;
+    for(int i = 1; i <= N; i++)
+    {
+        a[i] -= aux;
+        if(a[i] > MID && r == N + 1)
+            r = i;
+    }
+
+    for(int i = 1; i <= N; i++)
+        pre[i] = pre[i - 1] + a[i];
+    
+    ll ans = (MAX*(l-1) - sum(1, l-1)) + (a[1]*(1-l+1) - sum(l, 1)) + (sum(1, r - 1) - a[1]*(r - 1)) + (MAX * (N - r + 1) - sum(r, N));
+    for(int i = 1; i <= N; i++)
+    {
+        while(l <= N && a[l] - a[i] <= -MID)
+            l++;
+        while(r <= N && a[r] - a[i] <= MID)
+            r++;
+
+        // cout << l << " " << i << " " << r << "\n";
+        // cerr << MAX*(l-1) - sum(1, l-1) << "\n";
+        // cerr << a[i]*(i-l+1) - sum(l, i) << "\n";
+        // cerr << sum(i, r - 1) - a[i]*(r - i) << "\n";
+        // cerr << MAX * (N - r + 1) - sum(r, N) << "\n";
+        
+        ans = min(ans, (MAX*(l-1) - sum(1, l-1)) + (a[i]*(i-l+1) - sum(l, i)) + (sum(i, r - 1) - a[i]*(r - i)) + (MAX * (N - r + 1) - sum(r, N)));
+    }
+    
+    cout << ans << "\n";
+    return 0;
+}

@@ -1,0 +1,130 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+struct Line
+{
+    int y, l;
+    vector<int> v;
+    vector<int> child, sz;
+
+    bool operator<(const Line & _x) const
+    {
+        return y > _x.y;
+    }
+};
+
+const int MAXN = (int)3e5 + 5;
+int N, M, Q, curr_node[MAXN];
+pair<int, int> p[MAXN];
+Line horiz[MAXN];
+vector<int> roots;
+
+int look(int node)
+{
+    if(node == p[node].first)
+        return node;
+    return p[node].first = look(p[node].first);
+}
+
+void join(int a, int b)
+{
+    p[b].first = a;
+    p[a].second += p[b].second;
+}
+
+int qry(int pos, int node)
+{
+     // cerr<< pos << ", " << node << "\n";
+    
+    if(node <= N)
+        return node;
+
+    int i = node - N - 1;
+    if(pos == 1)
+        return horiz[i].v[0];
+
+    for(int j = 0; j < horiz[i].l; j++)
+    {
+        if(horiz[i].sz[j] < pos)
+            pos -= horiz[i].sz[j];
+        else
+            return qry(pos, horiz[i].child[j]);
+    }
+}
+
+
+int main()
+{
+    ios_base::sync_with_stdio(0); cin.tie(0);
+
+    cin >> N >> M >> Q;
+    for(int i = 0; i < M; i++)
+    {
+        cin >> horiz[i].y >> horiz[i].l;
+        horiz[i].v.resize(horiz[i].l);
+        for(int j = 0; j < horiz[i].l; j++)
+            cin >> horiz[i].v[j];
+    }
+
+    sort(horiz, horiz + M);
+
+    for(int i = 1; i <= N; i++)
+    {
+        p[i] = {i, 1};
+        curr_node[i] = i;
+    }
+
+    for(int i = 0; i < M; i++)
+    {
+        for(int j = 0; j < horiz[i].l; j++)
+            horiz[i].v[j] = look(horiz[i].v[j]);
+        sort(horiz[i].v.begin(), horiz[i].v.end());
+
+         // cerr<< i << " -- ";
+        //for(int j = 0; j < horiz[i].l; j++)
+             // cerr<< horiz[i].v[j] << ", ";
+         // cerr<< "\n";
+
+        horiz[i].child.resize(horiz[i].l);
+        horiz[i].sz.resize(horiz[i].l);
+        for(int j = 0; j < horiz[i].l; j++)
+        {
+            horiz[i].child[j] = curr_node[horiz[i].v[j]];
+            horiz[i].sz[j] = p[horiz[i].v[j]].second;
+             // cerr<< horiz[i].child[j] << ", ";
+        }
+         // cerr<< "\n";
+
+        for(int j = 1; j < horiz[i].l; j++)
+            join(horiz[i].v[0], horiz[i].v[j]);
+
+        curr_node[horiz[i].v[0]] = N + i + 1;
+    }
+
+    for(int i = 1; i <= N; i++)
+        if(look(i) == i)
+        {
+            roots.push_back(i);
+             // cerr<< "(" << curr_node[i] << ",  ";
+             // cerr<< curr_node_b[i] << ") ";
+        }
+     // cerr<< "\n";
+    
+    for(int i = 0; i < Q; i++)
+    {
+        int pos;
+        cin >> pos;
+        for(auto x : roots)
+            if(p[x].second < pos)
+                pos -= p[x].second;
+            else
+            {
+                cout << qry(pos, curr_node[x]) << "\n";
+                break;
+            }
+    }
+    return 0;
+}

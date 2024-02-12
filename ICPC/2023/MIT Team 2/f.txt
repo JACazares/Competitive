@@ -1,0 +1,42 @@
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+int a, b;
+map<int, int> mp, dp, zeroes;
+
+int main() {
+  cin >> a >> b;
+  a -= (a/b)*b;
+  bool borrowed = false;
+  int ans = 0, qttZeroes = 0;
+  while(mp.find(a) == mp.end()){
+    if(a == 0) {
+      cout << ans << " " << 0 << endl;
+      exit(0);   
+    }
+    ans++;
+    int savea = a;
+    borrowed = false;
+    zeroes[a] = 0;
+    while(a < b) {
+      if(borrowed) ans++, zeroes[savea]++;
+      else {
+        borrowed = true;
+      }
+      a *= 10;
+    }
+    a -= (a/b)*b;
+    mp[savea] = a;
+    dp[savea] = ans-1;
+  }
+
+  int k = a;
+  int ans2 = 0;
+  do {
+    ans2 += 1+zeroes[k];
+    k = mp[k];
+  } while(k != a);
+  cout << dp[a] << " " << ans2 << endl;
+}
