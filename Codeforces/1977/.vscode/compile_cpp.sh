@@ -1,1 +1,0 @@
-/Users/joseangelcazarestorres/Desktop/Programming/Competitive/compile_cpp.sh
