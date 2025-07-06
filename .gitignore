@@ -1,6 +1,8 @@
+# Do not commit any executables
 *
 !*.*
 !*/
 
+# Do not commit Mac files
 *.DS_Store
 *.dSYM
