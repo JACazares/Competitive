@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+flat=0
+if [[ "${1:-}" == "--flat" ]]; then
+  flat=1
+  shift
+fi
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: cppnew [--flat] name [name ...]" >&2
+  exit 2
+fi
+
+template="${CP_TEMPLATE:-$HOME/Desktop/Programming/Competitive/templates/cpp.cpp}"
+
+for name in "$@"; do
+  if [[ "$flat" -eq 1 || "$name" == *.cpp ]]; then
+    src="$name"
+    [[ "$src" == *.cpp ]] || src="$src.cpp"
+    base="${src%.cpp}"
+    input="$base.in"
+  else
+    mkdir -p "$name"
+    src="$name/main.cpp"
+    input="$name/main.in"
+  fi
+
+  if [[ -e "$src" ]]; then
+    echo "cppnew: exists, skipping: $src" >&2
+  else
+    if [[ -f "$template" ]]; then
+      cp "$template" "$src"
+    else
+      printf '#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n  ios::sync_with_stdio(false);\n  cin.tie(nullptr);\n\n  return 0;\n}\n' > "$src"
+    fi
+    echo "created $src"
+  fi
+
+  if [[ ! -e "$input" ]]; then
+    : > "$input"
+    echo "created $input"
+  fi
+done

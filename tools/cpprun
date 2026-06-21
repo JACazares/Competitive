@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "Usage: cpprun [problem-dir|source.cpp|basename]" >&2
+}
+
+if [[ $# -gt 1 ]]; then
+  usage
+  exit 2
+fi
+
+if [[ $# -eq 0 ]]; then
+  if [[ -f main.cpp ]]; then
+    src="main.cpp"
+  else
+    mapfile -t sources < <(find . -maxdepth 1 -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' \) | sort)
+    if [[ ${#sources[@]} -eq 1 ]]; then
+      src="${sources[0]#./}"
+    else
+      echo "cpprun: pass a source file, or keep exactly one .cpp file in this directory" >&2
+      exit 2
+    fi
+  fi
+else
+  target="$1"
+  if [[ -d "$target" ]]; then
+    cd "$target"
+    src="main.cpp"
+  else
+    src="$target"
+  fi
+  if [[ "$src" != *.* && -f "$src.cpp" ]]; then
+    src="$src.cpp"
+  fi
+fi
+
+if [[ ! -f "$src" ]]; then
+  echo "cpprun: source not found: $src" >&2
+  exit 1
+fi
+
+base="$(basename "$src")"
+base="${base%.*}"
+out_dir="${CPBUILD_DIR:-.cpbuild}"
+out="$out_dir/$base"
+
+cxx="${CXX:-}"
+if [[ -z "$cxx" ]]; then
+  cxx="$(command -v g++ || true)"
+  if [[ "$(basename "${cxx:-}")" == "g++" ]] && command -v brew >/dev/null 2>&1 && brew list --versions gcc >/dev/null 2>&1; then
+    gcc_major="$(brew list --versions gcc | awk '{print $2}' | cut -d. -f1)"
+    if command -v "g++-$gcc_major" >/dev/null 2>&1; then
+      cxx="g++-$gcc_major"
+    fi
+  fi
+fi
+
+if [[ -z "$cxx" ]]; then
+  echo "cpprun: no C++ compiler found" >&2
+  exit 1
+fi
+
+flags=(
+  -std=c++23
+  -pedantic-errors
+  -Wall
+  -Wextra
+  -Wshadow
+  -Wsign-conversion
+  -Wformat=2
+  -O2
+  -DLOCAL
+)
+
+if [[ -n "${CP_DEBUG:-}" ]]; then
+  flags=(-std=c++23 -pedantic-errors -Wall -Wextra -Wshadow -Wsign-conversion -Wformat=2 -O0 -g -DLOCAL)
+fi
+
+mkdir -p "$out_dir"
+echo "+ $cxx ${flags[*]} $src -o $out" >&2
+"$cxx" "${flags[@]}" ${CPPFLAGS:-} ${CXXFLAGS:-} "$src" ${LDFLAGS:-} -o "$out"
+
+input="$base.in"
+expected="$base.out"
+if [[ -f "$input" && -f "$expected" ]]; then
+  actual="$(mktemp)"
+  "$out" < "$input" | tee "$actual"
+  diff -u "$expected" "$actual"
+  rm -f "$actual"
+elif [[ -f "$input" ]]; then
+  "$out" < "$input"
+else
+  "$out"
+fi

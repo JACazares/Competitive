@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "Usage: cppin [problem-dir|basename|source.cpp]" >&2
+}
+
+if [[ $# -gt 1 ]]; then
+  usage
+  exit 2
+fi
+
+if [[ $# -eq 0 ]]; then
+  if [[ -f main.cpp || -d .cpbuild ]]; then
+    input="main.in"
+  else
+    mapfile -t sources < <(find . -maxdepth 1 -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' \) | sort)
+    if [[ ${#sources[@]} -eq 1 ]]; then
+      base="$(basename "${sources[0]#./}")"
+      input="${base%.*}.in"
+    else
+      echo "cppin: pass a problem directory or source basename" >&2
+      exit 2
+    fi
+  fi
+else
+  target="$1"
+  if [[ -d "$target" ]]; then
+    input="$target/main.in"
+  else
+    base="$(basename "$target")"
+    base="${base%.*}"
+    input="$base.in"
+  fi
+fi
+
+mkdir -p "$(dirname "$input")"
+cat > "$input"
+echo "wrote $input" >&2
